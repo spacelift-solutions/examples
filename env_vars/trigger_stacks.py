@@ -45,7 +45,8 @@ def convert_to_runtime_config(yaml_data):
     return runtime_config
 
 def query_api(query: str, variables: dict = None) -> dict:
-    api_token = os.getenv("SPACELIFT_API_TOKEN")
+    #api_token = os.getenv("SPACELIFT_API_TOKEN")
+    api_token = os.getenv("HOME_TOKEN")
 
     headers = {
         "Content-Type": "application/json",

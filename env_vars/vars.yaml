@@ -3,7 +3,7 @@ env-var-yaml-1:
     value: /home/joey/.kube/config
     write_only: false
   - name: TF_VAR_variable_1
-    value: value1-test
+    value: joey-is-amazine
     write_only: false
 
 env-var-yaml-2:
