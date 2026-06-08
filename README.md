@@ -7,6 +7,9 @@ This repository contains practical examples demonstrating various Spacelift feat
 ### [env vars](env_vars/)
 This example demonstrates how to manage Spacelift environment variables using a YAML configuration file with the Spacelift Terraform provider.
 
+### [extract labels](extract_labels/)
+A Go tool that statically parses Terraform/OpenTofu HCL and reports the labels applied to stacks created via the `terraform-spacelift-stack` module.
+
 ## Getting Started
 
 1. Choose an example that matches your use case
