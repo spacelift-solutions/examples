@@ -1,6 +1,9 @@
 # Local .terraform directories
 .terraform/
 
+# Claude Code project files
+.claude
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -15,6 +18,12 @@ crash.*.log
 # to change depending on the environment.
 *.tfvars
 *.tfvars.json
+
+# Exception: the derived_spaces example ships these tfvars on purpose — a tenant
+# wiring demo and a Go golden-test fixture. They contain only team labels, no
+# secrets, and the example/tests don't work without them.
+!derived_spaces/tenants/tenant-b/terraform.tfvars
+!derived_spaces/extract-spaces/testdata/tenants/fixture-b/terraform.tfvars
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
