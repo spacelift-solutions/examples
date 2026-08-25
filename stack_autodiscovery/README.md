@@ -8,10 +8,10 @@ directory and open a pull request" instead of "write more Terraform".
 
 An administrative stack scans a directory in the repository with `fileset()` at
 plan time. Every subdirectory that contains at least one file is turned into a
-stack via the `stacks-module` module from the Spacelift module registry
-(the [terraform-spacelift-stack](https://github.com/spacelift-solutions/terraform-spacelift-stack)
-module, published to `spacelift.io`), with a name and an `env:` label derived
-from the directory path.
+stack via the
+[spacelift-solutions/stack/spacelift](https://search.opentofu.org/module/spacelift-solutions/stack/spacelift/latest)
+module from the OpenTofu registry, with a name and an `env:` label derived from
+the directory path.
 
 Because the discovery happens in Terraform, no stack definitions are duplicated
 and nothing has to be kept in sync by hand: the filesystem is the source of
@@ -19,17 +19,25 @@ truth.
 
 ## Prerequisites
 
-The module is consumed from the Spacelift module registry:
+The module is consumed from the public
+[OpenTofu registry](https://search.opentofu.org/module/spacelift-solutions/stack/spacelift/latest):
 
 ```hcl
-source = "spacelift.io/spacelift-solutions/stacks-module/spacelift"
+source  = "spacelift-solutions/stack/spacelift"
+version = "~> 3.2"
 ```
 
-That source resolves against your own account's registry, so `stacks-module`
-needs to be published there before a run can initialise. Spacelift injects the
-registry credentials automatically inside a run; a `terraform init` from a
-laptop returns `401 Unauthorized` unless you configure credentials for
-`spacelift.io` yourself.
+Nothing needs to be published or authenticated: a bare module address resolves
+against OpenTofu's default registry, `registry.opentofu.org`, so `tofu init`
+works both inside a Spacelift run and from a laptop.
+
+The module is not mirrored to `registry.terraform.io`, so if the administrative
+stack runs Terraform rather than OpenTofu, name the host explicitly:
+
+```hcl
+source  = "registry.opentofu.org/spacelift-solutions/stack/spacelift"
+version = "~> 3.2"
+```
 
 ## Structure
 
@@ -153,13 +161,13 @@ Spacelift run. Point it at a checkout to see what would be discovered, for
 example from `admin/`:
 
 ```bash
-terraform console -var 'source_root=../../'
+tofu console -var 'source_root=../../'
 ```
 
-then evaluate `local.discovered_stacks`. This needs `terraform init` to have
-succeeded, so it only works where the module registry is reachable (see
-Prerequisites). Otherwise, read the `discovered_stacks` output from the
-administrative stack's run in Spacelift, which reports the same map.
+then evaluate `local.discovered_stacks`. This needs `tofu init` to have
+succeeded first, which works from anywhere with access to the public registry.
+Otherwise, read the `discovered_stacks` output from the administrative stack's
+run in Spacelift, which reports the same map.
 
 ## Triggering the Administrative Stack
 
