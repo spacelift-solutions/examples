@@ -10,6 +10,9 @@ This example demonstrates how to manage Spacelift environment variables using a 
 ### [extract labels](extract_labels/)
 A Go tool that statically parses Terraform/OpenTofu HCL and reports the labels applied to stacks created via the `terraform-spacelift-stack` module.
 
+### [stack autodiscovery](stack_autodiscovery/)
+An administrative stack that scans a directory in the repository and creates one Spacelift stack per subdirectory it finds, so adding a stack is just adding a directory.
+
 ## Getting Started
 
 1. Choose an example that matches your use case
