@@ -125,7 +125,10 @@ discovered_stacks = {
 
 1. Create the administrative stack in Spacelift, pointing at this repository with
    `stack_autodiscovery/admin` as the project root, and mark it as administrative
-   so it is allowed to manage Spacelift resources.
+   so it is allowed to manage Spacelift resources. Add
+   `stack_autodiscovery/autodiscovery/**` as an additional project glob so that
+   onboarding a directory actually triggers the stack - see
+   [Triggering the Administrative Stack](#triggering-the-administrative-stack).
 
 2. Point `var.autodiscover_directory` at the directory you want scanned and
    `var.repository_name` at your repository. The defaults match this example
@@ -139,9 +142,9 @@ discovered_stacks = {
    stack.
 
 Because discovery reads the filesystem, the administrative stack must re-run
-whenever the scanned tree changes. Give it a push policy that triggers on changes
-under both `stack_autodiscovery/admin` and `stack_autodiscovery/autodiscovery`,
-or leave it on the default behaviour of tracking the whole project.
+whenever the scanned tree changes. That does not happen out of the box, because
+the scanned tree sits outside the administrative stack's project root - see
+[Triggering the Administrative Stack](#triggering-the-administrative-stack).
 
 ### Inspecting discovery outside of Spacelift
 
@@ -157,6 +160,75 @@ then evaluate `local.discovered_stacks`. This needs `terraform init` to have
 succeeded, so it only works where the module registry is reachable (see
 Prerequisites). Otherwise, read the `discovered_stacks` output from the
 administrative stack's run in Spacelift, which reports the same map.
+
+## Triggering the Administrative Stack
+
+**Onboarding a new directory does not trigger the administrative stack until you
+tell Spacelift to watch the scanned directory.** This is expected, not a bug: the
+administrative stack's project root is `stack_autodiscovery/admin`, and by default
+Spacelift only triggers a stack on changes inside its project root. A pull request
+that adds `stack_autodiscovery/autodiscovery/prod/app/main.tf` touches nothing
+under `admin/`, so nothing runs and the new stack is not created until the
+administrative stack happens to run for some other reason.
+
+Fix it by adding the scanned directory as an **additional project glob** on the
+administrative stack. Globs are matched against paths relative to the *repository*
+root, not the project root:
+
+```
+stack_autodiscovery/autodiscovery/**
+```
+
+In Terraform:
+
+```hcl
+resource "spacelift_stack" "admin" {
+  name         = "stack-autodiscovery-admin"
+  repository   = "examples"
+  branch       = "main"
+  project_root = "stack_autodiscovery/admin"
+  # ... plus whatever else the administrative stack needs
+
+  # Also run when the scanned tree changes, so onboarding a directory
+  # creates its stack on the same push.
+  additional_project_globs = ["stack_autodiscovery/autodiscovery/**"]
+}
+```
+
+In the UI: **Stack settings -> Behavior -> Additional project globs**, then add
+`stack_autodiscovery/autodiscovery/**`.
+
+Two things worth knowing about globs:
+
+- They only affect *triggering*. They do not mount anything extra into the run -
+  which does not matter here, because Spacelift checks out the whole repository at
+  `/mnt/workspace/source/` regardless, and that is what `fileset()` reads.
+- A push policy takes over triggering entirely. Spacelift's default push policy
+  already matches both the project root and `input.stack.additional_project_globs`,
+  so a policy derived from the default keeps honouring the glob above. A policy
+  written from scratch has to account for the scanned directory itself, for
+  example:
+
+  ```rego
+  package spacelift
+
+  track {
+    input.push.branch == input.stack.branch
+    affected
+  }
+
+  propose { affected }
+
+  affected {
+    some i
+    startswith(input.push.affected_files[i], "stack_autodiscovery/admin/")
+  }
+
+  affected {
+    some i
+    startswith(input.push.affected_files[i], "stack_autodiscovery/autodiscovery/")
+  }
+  ```
 
 ## Things to Watch Out For
 
@@ -174,3 +246,8 @@ administrative stack's run in Spacelift, which reports the same map.
 - **Discovery happens at plan time.** The stack list reflects the commit the
   administrative run is planning, which is why the administrative stack needs to
   run on changes to the scanned directory.
+- **The scanned directory is outside the administrative stack's project root.**
+  Without an additional project glob (or a push policy that covers it), adding a
+  directory will not trigger the administrative stack and the new stack is never
+  created. See
+  [Triggering the Administrative Stack](#triggering-the-administrative-stack).
