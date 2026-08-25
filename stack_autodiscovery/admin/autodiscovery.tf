@@ -30,8 +30,7 @@ locals {
 }
 
 module "autodiscovered_stack" {
-  source  = "spacelift-solutions/stack/spacelift"
-  version = "~> 3.2"
+  source = "spacelift-solutions/stack/spacelift"
 
   for_each = local.discovered_stacks
 

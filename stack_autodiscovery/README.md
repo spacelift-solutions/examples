@@ -23,8 +23,7 @@ The module is consumed from the public
 [OpenTofu registry](https://search.opentofu.org/module/spacelift-solutions/stack/spacelift/latest):
 
 ```hcl
-source  = "spacelift-solutions/stack/spacelift"
-version = "~> 3.2"
+source = "spacelift-solutions/stack/spacelift"
 ```
 
 Nothing needs to be published or authenticated: a bare module address resolves
@@ -35,8 +34,7 @@ The module is not mirrored to `registry.terraform.io`, so if the administrative
 stack runs Terraform rather than OpenTofu, name the host explicitly:
 
 ```hcl
-source  = "registry.opentofu.org/spacelift-solutions/stack/spacelift"
-version = "~> 3.2"
+source = "registry.opentofu.org/spacelift-solutions/stack/spacelift"
 ```
 
 ## Structure
