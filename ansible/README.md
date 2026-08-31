@@ -25,6 +25,7 @@ your infrastructure.
 - At least one running EC2 instance with an `Ansible` tag
 - An AWS integration on the stack that can call `ec2:DescribeInstances`
 - Network access from the worker to the instances on port 22
+- An SSH private key that reaches the instances as the `ec2-user` account
 
 ## Stack settings
 
@@ -36,15 +37,28 @@ Create an Ansible stack against this repository and set the following:
 | Playbook | `playbook.yml` |
 | Runner image | `public.ecr.aws/spacelift/runner-ansible:latest-aws` |
 
-Add one environment variable:
+First, point Ansible at the configuration file:
 
 ```shell
 ANSIBLE_CONFIG=/mnt/workspace/source/ansible/ansible.cfg
 ```
 
-Spacelift clones the repository into `/mnt/workspace/source/`, so the path to
-`ansible.cfg` includes the `ansible` directory even though the project root
-already points there.
+Ansible skips an `ansible.cfg` that sits in a world-writable working directory,
+and only prints a warning when it does. `ANSIBLE_CONFIG` names the file
+explicitly, so the run never depends on that check. Spacelift clones the
+repository into `/mnt/workspace/source/`, so the path includes the `ansible`
+directory even though the project root already points there.
+
+Then add the SSH private key as a secret
+[mounted file](https://docs.spacelift.io/concepts/configuration/environment#mounted-files)
+and point Ansible at it:
+
+```shell
+ANSIBLE_PRIVATE_KEY_FILE=/mnt/workspace/<name of the mounted file>
+```
+
+Without the key the playbook cannot reach the hosts. It sets
+`ignore_unreachable: true`, so the run still succeeds and configures nothing.
 
 ## How it Works
 
