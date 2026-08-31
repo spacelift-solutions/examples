@@ -4,6 +4,9 @@ This repository contains practical examples demonstrating various Spacelift feat
 
 ## Examples
 
+### [ansible](ansible/)
+Configures an Apache HTTP Server on EC2 instances with Ansible, using the AWS EC2 inventory plugin to find the hosts.
+
 ### [env vars](env_vars/)
 This example demonstrates how to manage Spacelift environment variables using a YAML configuration file with the Spacelift Terraform provider.
 
