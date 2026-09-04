@@ -64,7 +64,10 @@ Without the key the playbook cannot reach the hosts. It sets
 
 1. **Inventory**: `aws_ec2.yml` asks the AWS EC2 inventory plugin for running
    instances in `us-east-1` that have a tag named `Ansible`. Change the region
-   and the filters to match your account.
+   and the filters to match your account. The plugin also turns every EC2
+   attribute into a host variable. `hostvars_prefix` renames those variables
+   with an `ec2_` prefix. Without it the plugin creates a variable named `tags`,
+   which is a reserved Ansible name, and Ansible warns on every run.
 2. **Configuration**: `ansible.cfg` sets `aws_ec2.yml` as the inventory and
    connects as the `ec2-user` account.
 3. **Run**: the playbook installs the `httpd` package, creates the document

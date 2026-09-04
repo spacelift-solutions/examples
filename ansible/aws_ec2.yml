@@ -1,5 +1,6 @@
 ---
 plugin: aws_ec2
+hostvars_prefix: ec2_
 regions:
   - us-east-1
 filters:
