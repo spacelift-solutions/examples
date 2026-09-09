@@ -58,8 +58,8 @@ and point Ansible at it:
 ANSIBLE_PRIVATE_KEY_FILE=/mnt/workspace/<name of the mounted file>
 ```
 
-Without the key the playbook cannot reach the hosts. It sets
-`ignore_unreachable: true`, so the run still succeeds and configures nothing.
+Without the key Ansible cannot reach the hosts. The playbook does not set
+`ignore_unreachable`, so the run fails and reports the connection error.
 
 ## How it Works
 
