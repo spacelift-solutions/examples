@@ -49,6 +49,10 @@ explicitly, so the run never depends on that check. Spacelift clones the
 repository into `/mnt/workspace/source/`, so the path includes the `ansible`
 directory even though the project root already points there.
 
+Set the variable. Ansible applies `any_unparsed_is_failed` only when it reads
+this file. Without the variable Ansible also loses the inventory setting,
+matches no hosts, and exits 0.
+
 Then add the SSH private key as a secret
 [mounted file](https://docs.spacelift.io/concepts/configuration/environment#mounted-files)
 and point Ansible at it:
@@ -57,8 +61,11 @@ and point Ansible at it:
 ANSIBLE_PRIVATE_KEY_FILE=/mnt/workspace/<name of the mounted file>
 ```
 
-Without the key the playbook cannot reach the hosts. It sets
-`ignore_unreachable: true`, so the run still succeeds and configures nothing.
+Without the key Ansible cannot reach the hosts. The playbook does not set
+`ignore_unreachable`, so the run fails and reports the connection error. One
+unreachable host is enough. Ansible drops that host, configures every host it
+reaches, and then exits with an error. Remove the `Ansible` tag from an
+instance that you keep out of the run.
 
 ## How it Works
 
@@ -69,7 +76,11 @@ Without the key the playbook cannot reach the hosts. It sets
    with an `ec2_` prefix. Without it the plugin creates a variable named `tags`,
    which is a reserved Ansible name, and Ansible warns on every run.
 2. **Configuration**: `ansible.cfg` sets `aws_ec2.yml` as the inventory and
-   connects as the `ec2-user` account.
+   connects as the `ec2-user` account. It also sets
+   `any_unparsed_is_failed`. Without it, an inventory source that does not
+   parse is only a warning: Ansible matches no hosts and still exits 0, so
+   Spacelift reports a run that finished with no changes. A missing AWS
+   integration looks exactly like an empty infrastructure.
 3. **Run**: the playbook installs the `httpd` package, creates the document
    root from `vars/default.yml`, renders both templates, and starts the
    service. A handler restarts Apache when the virtual host changes.
