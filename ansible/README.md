@@ -16,6 +16,7 @@ your infrastructure.
 - `playbook.yml` - Installs Apache, renders the templates, and starts the service
 - `aws_ec2.yml` - AWS EC2 inventory plugin configuration
 - `ansible.cfg` - Ansible configuration, points the inventory at `aws_ec2.yml`
+  and makes an unparsable inventory source fail the run
 - `vars/default.yml` - Document root and port number
 - `templates/spacelift.conf.j2` - Apache virtual host
 - `templates/index.html.j2` - The page Apache serves
@@ -69,7 +70,11 @@ Without the key the playbook cannot reach the hosts. It sets
    with an `ec2_` prefix. Without it the plugin creates a variable named `tags`,
    which is a reserved Ansible name, and Ansible warns on every run.
 2. **Configuration**: `ansible.cfg` sets `aws_ec2.yml` as the inventory and
-   connects as the `ec2-user` account.
+   connects as the `ec2-user` account. It also sets
+   `any_unparsed_is_failed`. Without it, an inventory source that fails to
+   parse is only a warning: Ansible matches no hosts and still exits 0, so
+   Spacelift reports a run that finished with no changes. A missing AWS
+   integration looks exactly like an empty infrastructure.
 3. **Run**: the playbook installs the `httpd` package, creates the document
    root from `vars/default.yml`, renders both templates, and starts the
    service. A handler restarts Apache when the virtual host changes.
